@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
 //                    LoginScreen(
 //                        modifier = Modifier.padding(innerPadding)
 //                    )
-                    HomeScreen(modifer = Modifier.padding(innerPadding))
+                    HomeScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
