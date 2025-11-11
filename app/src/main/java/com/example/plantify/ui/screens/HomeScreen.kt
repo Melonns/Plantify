@@ -49,29 +49,22 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         NavItem("Profile", Icons.Default.Person, Routes.PROFILE)
     )
 
-    // 1. Buat NavController
     val navController = rememberNavController()
-
-    // 2. KITA BISA HAPUS 'BackHandler' DARI SINI
-    //    (Jetpack Navigation akan mengurusnya)
 
     Box(modifier = modifier.fillMaxSize()) {
 
-        // 3. KONTEN UTAMA SEKARANG ADALAH NavHost
-        Scaffold { innerPadding ->
-            // 'innerPadding' dari Scaffold akan diterapkan
-            // di dalam NavHost agar status bar tidak tertutup
+        Scaffold(
+            contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+        ) { innerPadding ->
             AppNavHost(
-                navController = navController,
-                modifier = Modifier.padding(innerPadding)
+                navController = navController
             )
         }
 
-        // 4. Dapatkan rute saat ini dari NavController
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        // 5. Sembunyikan bar HANYA JIKA rute saat ini adalah "scan"
+        // Tampilkan bar HANYA JIKA rute saat ini adalah HOME
         if (currentRoute == Routes.HOME ) {
 
             // "KOTAK" BAR (Home & Profile)
@@ -86,19 +79,16 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 64.dp),
+                        .padding(horizontal = 64.dp), // <-- Anda mengubah ini, pastikan sudah benar
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Item Home
                     CustomBottomBarItem(
                         item = items[0],
-                        // 6. 'isSelected' dicek dari rute saat ini
                         isSelected = (currentRoute == Routes.HOME),
-                        // 7. 'onClick' sekarang MENAVIGASI
                         onClick = {
                             navController.navigate(Routes.HOME) {
-                                // Pop up ke start destination agar back stack tidak menumpuk
                                 popUpTo(navController.graph.startDestinationId)
                                 launchSingleTop = true
                             }
@@ -108,9 +98,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     // Item Profile
                     CustomBottomBarItem(
                         item = items[2],
-                        // 6. 'isSelected' dicek dari rute saat ini
-                        isSelected = (currentRoute == Routes.PROFILE),
-                        // 7. 'onClick' sekarang MENAVIGASI
+                        isSelected = (currentRoute == Routes.PROFILE), // Ini akan selalu false, tidak masalah
                         onClick = {
                             navController.navigate(Routes.PROFILE) {
                                 popUpTo(navController.graph.startDestinationId)
@@ -130,7 +118,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
                     .clickable {
-                        // 7. 'onClick' sekarang MENAVIGASI
                         navController.navigate(Routes.SCAN) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
@@ -152,25 +139,32 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
 // Composable baru untuk NavHost (Pemisah Konten)
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun AppNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
     NavHost(
         navController = navController,
-        startDestination = Routes.HOME, // Mulai dari 'home'
-        modifier = modifier
+        startDestination = Routes.HOME,
+        // --- INI ADALAH PERBAIKANNYA ---
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Rute untuk 'home' -> memanggil HomeContentScreen
+        // Rute untuk 'home'
         composable(Routes.HOME) {
-            HomeContentScreen()
+            HomeContentScreen(
+                modifier = Modifier
+                    .padding(WindowInsets.safeDrawing.asPaddingValues())
+            )
         }
 
-        // Rute untuk 'scan' -> memanggil ScanScreen
+        // Rute untuk 'scan'
         composable(Routes.SCAN) {
             ScanScreen()
         }
 
-        // Rute untuk 'profile' -> memanggil ProfileScreen
+        // Rute untuk 'profile'
         composable(Routes.PROFILE) {
-            ProfileScreen()
+            ProfileScreen(navController = navController)
         }
     }
 }
